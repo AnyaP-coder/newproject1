@@ -5,60 +5,54 @@ using UnityEngine;
 
 public class CharacterMovement : MonoBehaviour
 {
-    //main
-    public float speedMove;
-    
+    CharacterController cc;
+    Vector3 moveVec, gravity;
 
-    //gameplay 
-    private float gravityForce;
-    private Vector3 moveVector;
+    float speed = 8, jumpSpeed = 12;
+
+    int laneNumber = 1;
   
 
-
-     
-    public bool IsGround;
-
-    //component links
-    private CharacterController ch_controller;
-
-
     void Start()
-    { 
-        ch_controller = GetComponent<CharacterController>();
+    {
+        cc = GetComponent<CharacterController>();
+        moveVec = new Vector3(1, 0, 0);
+        gravity = Vector3.zero;
     }
 
-    
+
     void Update()
     {
-        CharacterMove();
-        
-    }
-
-    //movement method
-    private void CharacterMove()
-    {
-        moveVector = Vector3.zero;
-        moveVector.x = Input.GetAxis("Horizontal") * speedMove;
-        moveVector.z = Input.GetAxis("Vertical") * speedMove;
-
-
-
-
-        
-        if (Vector3.Angle(Vector3.forward, moveVector) > 1f || Vector3.Angle(Vector3.forward, moveVector) == 0)
+        if (cc.isGrounded)
         {
-            Vector3 direct = Vector3.RotateTowards(transform.forward, moveVector, speedMove, 0.0f);
-            transform.rotation = Quaternion.LookRotation(direct);
+            gravity = Vector3.zero;
+
+            if (Input.GetAxisRaw("Vertical") > 0)
+                gravity.y = jumpSpeed;
+        }
+        else
+            gravity += Physics.gravity * Time.deltaTime * 3;
+
+
+
+
+        moveVec.x = speed;
+        moveVec += gravity;
+        moveVec *= Time.deltaTime;
+
+
+        float input = Input.GetAxis("Horizontal");
+        if (Mathf.Abs(input) > .1f)
+        {
+            laneNumber += (int)Mathf.Sign(input);
+            laneNumber = Mathf.Clamp(laneNumber, 0, 2);
         }
 
-        ch_controller.Move(moveVector * Time.deltaTime);
+        cc.Move(moveVec);
 
-
-        
-    }
-
-    
 
     }
+}
+ 
 
 
